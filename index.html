@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uji Coba TKA - SDN Cepokorejo 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Font Styles */
+        .font-title {
+            font-family: 'Arial Nova Cond', 'Arial Narrow', Arial, sans-serif;
+            font-stretch: condensed;
+        }
+        .font-q {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+        }
+        .font-src {
+            font-family: Arial, sans-serif;
+            font-size: 8pt;
+            font-style: italic;
+        }
+
+        /* Custom Checkbox/Radio for Q2 and Q3 */
+        .custom-check-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #cbd5e1;
+            border-radius: 4px;
+            background-color: white;
+            transition: all 0.2s;
+        }
+        .peer:checked ~ .custom-check-box {
+            background-color: #3b82f6; /* Blue */
+            border-color: #3b82f6;
+        }
+        .peer:checked ~ .custom-check-box::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Table styling for Q3 */
+        .q3-table th, .q3-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            text-align: center;
+        }
+        .q3-table td:first-child {
+            text-align: left;
+        }
+
+        /* Hide sections initially */
+        .hidden-section {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800">
+
+    <!-- 1. HALAMAN LOGIN -->
+    <div id="login-section" class="flex items-center justify-center min-h-screen relative p-4">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md flex flex-col items-center">
+            <!-- Logo Placeholder -->
+            <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6 shadow-inner border-4 border-white">
+                <span class="text-gray-500 font-bold text-sm text-center">LOGO<br>SEKOLAH</span>
+            </div>
+
+            <!-- Judul -->
+            <div class="text-center mb-8 font-title">
+                <h1 class="text-2xl font-bold uppercase">UJI COBA TES KEMAMPUAN AKADEMIK (TKA)</h1>
+                <h2 class="text-xl font-bold uppercase mt-1">UPT SD NEGERI CEPOKOREJO 2</h2>
+                <h3 class="text-lg font-bold uppercase mt-1">TAHUN 2027.</h3>
+            </div>
+
+            <!-- Form -->
+            <form id="login-form" class="w-full space-y-4 font-q">
+                <div>
+                    <label class="block font-bold mb-1 text-gray-700">Nama Peserta</label>
+                    <input type="text" id="input-nama" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1 text-gray-700">NISN</label>
+                    <input type="number" id="input-nisn" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1 text-gray-700">Token Ujian</label>
+                    <input type="text" id="input-token" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none uppercase">
+                </div>
+                
+                <!-- Custom Alert for wrong token -->
+                <div id="token-error" class="hidden bg-red-100 text-red-700 p-3 rounded-lg text-sm text-center font-bold">
+                    Maaf, token yang Anda masukkan salah. Silakan ulangi Kembali.
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition mt-4">MASUK</button>
+            </form>
+        </div>
+        <!-- Footer -->
+        <div class="absolute bottom-4 right-4 text-gray-500 text-sm font-q">
+            Dibuat oleh: Ika Yulliana
+        </div>
+    </div>
+
+    <!-- 2. MODAL PETUNJUK -->
+    <div id="modal-section" class="hidden-section fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col font-q">
+            <div class="bg-blue-600 text-white p-4 text-center font-bold text-lg">
+                Konfirmasi Data & Petunjuk
+            </div>
+            <div class="p-6">
+                <div class="mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p><strong>Nama:</strong> <span id="display-nama" class="text-blue-700"></span></p>
+                    <p><strong>NISN:</strong> <span id="display-nisn" class="text-blue-700"></span></p>
+                </div>
+                <h4 class="font-bold mb-2">Petunjuk Pengerjaan:</h4>
+                <ol class="list-[lower-alpha] pl-5 space-y-2 mb-4">
+                    <li>Soal terdiri dari 3 butir soal dengan waktu mengerjakan maksimal 75 menit.</li>
+                    <li>Periksa Kembali jawaban Anda. Pastikan Anda menjawab dengan benar.</li>
+                </ol>
+                <p class="font-bold text-center text-blue-600 mt-6">Selamat mengerjakan!</p>
+            </div>
+            <div class="p-4 bg-gray-100 text-right">
+                <button id="btn-start" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg transition shadow-md">
+                    Saya Mengerti, Saya Siap Mengerjakan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. HALAMAN SOAL (TEST INTERFACE) -->
+    <div id="test-section" class="hidden-section min-h-screen flex flex-col">
+        <!-- Header Ujian -->
+        <header class="bg-white shadow-md p-4 flex justify-between items-center z-10 font-title">
+            <div class="font-bold text-lg">UJI COBA TKA - SD CEPOKOREJO 2</div>
+            <div id="nav-container" class="flex gap-2 font-q font-bold">
+                <!-- Nav Buttons injected by JS -->
+            </div>
+        </header>
+
+        <!-- Area Konten -->
+        <main class="flex-1 max-w-6xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-6">
+            
+            <!-- Area Stimulus (Kiri) -->
+            <div class="lg:w-1/2 bg-white rounded-xl shadow-md p-6 overflow-y-auto" style="max-height: calc(100vh - 120px);">
+                <h2 class="font-q font-bold text-lg mb-3 text-center">Menjelajah Alam Asri Situ Gunung</h2>
+                <div class="font-q text-justify">
+                    <p class="mb-2">Situ Gunung ada di Sukabumi. Tempat wisata ini sangat indah. Situ berarti sebuah danau alami. Air danau ini sangat jernih. Banyak pohon pinus tumbuh subur. Hutan ini kawasan konservasi alam. Udara di sana terasa dingin. Wisatawan datang setiap hari libur. Mereka melihat jembatan gantung panjang. Jembatan itu membelah hutan hijau. Jembatan itu bernama <em>suspension bridge</em>. Turis berjalan dengan sangat tenang. Burung liar berkicau amat merdu. Monyet ekor panjang sering muncul. Hewan ini bergerak sangat lincah. Mereka melompat dari dahan pohon.</p>
+                    <p class="mb-2">Flora adalah segala jenis tumbuhan. Fauna adalah segala jenis hewan. Ada juga curug yang menawan. Curug berarti sebuah air terjun. Suara airnya membuat hati tenang. Pak Somad bekerja sebagai pemandu. Ia menemani para tamu berjalan. Pak Somad bercerita tentang sejarah. Petugas taman nasional menjaga hutan. Mereka berpatroli keliling setiap hari. Kabut tebal turun sore hari. Pemandangan danau menjadi sangat syahdu. Banyak orang berfoto di sana. Kita wajib menjaga kelestarian alam. Jangan membuang sampah sembarangan kawan. Alam bersih membuat bumi sehat. Situ Gunung adalah anugerah Tuhan. Mari kita rawat tempat ini.</p>
+                </div>
+                <div class="font-src mt-4 text-blue-600">
+                    Sumber: <a href="https://www.klook.com/id/blog/pemandangan-alam-indonesia" target="_blank" class="hover:underline">https://www.klook.com/id/blog/pemandangan-alam-indonesia</a> (dengan penyempurnaan)
+                </div>
+            </div>
+
+            <!-- Area Soal (Kanan) -->
+            <div class="lg:w-1/2 flex flex-col font-q">
+                <div class="bg-white rounded-xl shadow-md p-6 flex-1 relative mb-20 lg:mb-0">
+                    
+                    <!-- KONTEN SOAL 1 -->
+                    <div id="q1-container" class="question-container">
+                        <div class="font-bold mb-4">Soal No. 1</div>
+                        <p class="mb-4">Kosakata khusus merupakan kata-kata yang maknanya sering digunakan dalam bidang ilmu atau kegiatan tertentu. Berdasarkan teks di atas, kalimat manakah yang memuat penggunaan kosakata khusus dalam bidang pariwisata?</p>
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="radio" name="q1" value="A" class="hidden peer" onchange="saveAnswer(1, 'A')">
+                                <div class="w-8 h-8 rounded-full border-2 border-gray-400 flex items-center justify-center font-bold text-gray-600 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:border-blue-400 transition-colors">A</div>
+                                <span class="peer-checked:font-bold">Wisatawan datang setiap hari libur.</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="radio" name="q1" value="B" class="hidden peer" onchange="saveAnswer(1, 'B')">
+                                <div class="w-8 h-8 rounded-full border-2 border-gray-400 flex items-center justify-center font-bold text-gray-600 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:border-blue-400 transition-colors">B</div>
+                                <span class="peer-checked:font-bold">Hutan ini kawasan konservasi alam.</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="radio" name="q1" value="C" class="hidden peer" onchange="saveAnswer(1, 'C')">
+                                <div class="w-8 h-8 rounded-full border-2 border-gray-400 flex items-center justify-center font-bold text-gray-600 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:border-blue-400 transition-colors">C</div>
+                                <span class="peer-checked:font-bold">Flora adalah segala jenis tumbuhan.</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="radio" name="q1" value="D" class="hidden peer" onchange="saveAnswer(1, 'D')">
+                                <div class="w-8 h-8 rounded-full border-2 border-gray-400 flex items-center justify-center font-bold text-gray-600 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 group-hover:border-blue-400 transition-colors">D</div>
+                                <span class="peer-checked:font-bold">Petugas taman nasional menjaga hutan.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- KONTEN SOAL 2 -->
+                    <div id="q2-container" class="question-container hidden">
+                        <div class="font-bold mb-4">Soal No. 2</div>
+                        <p class="mb-4">Informasi tersurat adalah informasi yang secara langsung tertulis dan dapat dibaca di dalam teks. Berdasarkan teks deskripsi di atas, pilihlah dua pernyataan yang memuat informasi tersurat dengan tepat! <br><span class="text-blue-600 font-bold">(Pilih 2 jawaban yang benar)</span></p>
+                        <div class="space-y-4">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" name="q2" value="A" class="hidden peer" onchange="saveAnswerQ2()">
+                                <div class="custom-check-box"></div>
+                                <span class="peer-checked:font-bold">Pak Somad bercerita tentang sejarah tempat itu.</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" name="q2" value="B" class="hidden peer" onchange="saveAnswerQ2()">
+                                <div class="custom-check-box"></div>
+                                <span class="peer-checked:font-bold">Petugas taman berpatroli keliling setiap hari.</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" name="q2" value="C" class="hidden peer" onchange="saveAnswerQ2()">
+                                <div class="custom-check-box"></div>
+                                <span class="peer-checked:font-bold">Wisatawan datang berkunjung pada sore hari.</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- KONTEN SOAL 3 -->
+                    <div id="q3-container" class="question-container hidden">
+                        <div class="font-bold mb-4">Soal No. 3</div>
+                        <p class="mb-4 text-justify">Amanat adalah pesan moral atau nasihat yang ingin disampaikan penulis kepada pembaca melalui tulisannya. Berdasarkan teks deskripsi di atas, tentukanlah apakah pernyataan-pernyataan berikut ini merupakan amanat yang sesuai dengan isi teks! <br><i>Berilah tanda centang (✓) pada kolom 'Benar' jika pernyataan sesuai dengan amanat teks, atau pada kolom 'Salah' jika tidak sesuai!</i></p>
+                        
+                        <table class="w-full q3-table mt-4">
+                            <thead class="bg-gray-100 font-bold">
+                                <tr>
+                                    <th class="w-2/3">Pernyataan</th>
+                                    <th>Benar</th>
+                                    <th>Salah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1. Kita harus senantiasa menjaga kebersihan alam sekitar.</td>
+                                    <td>
+                                        <label class="cursor-pointer block"><input type="radio" name="q3_p1" value="B" class="hidden peer" onchange="saveAnswerQ3('p1', 'B')"><div class="custom-check-box mx-auto"></div></label>
+                                    </td>
+                                    <td>
+                                        <label class="cursor-pointer block"><input type="radio" name="q3_p1" value="S" class="hidden peer" onchange="saveAnswerQ3('p1', 'S')"><div class="custom-check-box mx-auto"></div></label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2. Kita dilarang memberi makan hewan liar di area hutan.</td>
+                                    <td>
+                                        <label class="cursor-pointer block"><input type="radio" name="q3_p2" value="B" class="hidden peer" onchange="saveAnswerQ3('p2', 'B')"><div class="custom-check-box mx-auto"></div></label>
+                                    </td>
+                                    <td>
+                                        <label class="cursor-pointer block"><input type="radio" name="q3_p2" value="S" class="hidden peer" onchange="saveAnswerQ3('p2', 'S')"><div class="custom-check-box mx-auto"></div></label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>3. Kita wajib bersyukur atas anugerah alam ciptaan Tuhan.</td>
+                                    <td>
+                                        <label class="cursor-pointer block"><input type="radio" name="q3_p3" value="B" class="hidden peer" onchange="saveAnswerQ3('p3', 'B')"><div class="custom-check-box mx-auto"></div></label>
+                                    </td>
+                                    <td>
+                                        <label class="cursor-pointer block"><input type="radio" name="q3_p3" value="S" class="hidden peer" onchange="saveAnswerQ3('p3', 'S')"><div class="custom-check-box mx-auto"></div></label>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Kontrol Bawah -->
+                <div class="fixed bottom-0 left-0 right-0 lg:static bg-gray-200 lg:bg-transparent p-4 lg:p-0 lg:mt-4 flex justify-between items-center font-q font-bold shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] lg:shadow-none">
+                    <label class="flex items-center gap-2 cursor-pointer bg-yellow-400 hover:bg-yellow-500 text-yellow-900 py-2 px-4 rounded shadow">
+                        <input type="checkbox" id="checkbox-ragu" class="w-4 h-4" onchange="toggleRagu()"> Ragu-ragu
+                    </label>
+                    <button id="btn-next" onclick="nextQuestion()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded shadow flex items-center gap-2">
+                        Lewati <span class="text-xl leading-none">&rsaquo;</span>
+                    </button>
+                    <button id="btn-finish" onclick="finishTest()" class="hidden bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded shadow">
+                        Selesai
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 4. HALAMAN HASIL -->
+    <div id="result-section" class="hidden-section flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-600 to-indigo-800 p-4 font-q">
+        <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-lg text-center">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2 font-title">Selamat!</h1>
+            <p class="text-gray-600 mb-6">Anda telah menyelesaikan Uji Coba Tes Kemampuan Akademik (TKA).</p>
+            <div class="text-sm text-gray-500 uppercase tracking-widest font-bold">Nilai yang anda dapatkan adalah</div>
+            <div id="display-score" class="text-7xl font-extrabold text-blue-600 mt-2 mb-6">
+                0.00
+            </div>
+            
+            <div class="border-t border-gray-200 pt-4 text-left text-sm text-gray-600 grid grid-cols-2 gap-2">
+                <div><strong>Nama:</strong> <span id="res-nama"></span></div>
+                <div><strong>NISN:</strong> <span id="res-nisn"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        const state = {
+            nama: '',
+            nisn: '',
+            tokenValid: 'VL3URA',
+            currentQ: 1,
+            totalQ: 3,
+            answers: {
+                q1: null,
+                q2: [], // Array untuk checkbox
+                q3: { p1: null, p2: null, p3: null } // Objek untuk sub-soal tabel
+            },
+            ragu: { 1: false, 2: false, 3: false }
+        };
+
+        // --- NAVIGATION & UI LOGIC ---
+
+        function renderNav() {
+            const container = document.getElementById('nav-container');
+            container.innerHTML = '';
+            for (let i = 1; i <= state.totalQ; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                btn.onclick = () => goToQuestion(i);
+                btn.className = `w-10 h-10 rounded flex items-center justify-center border-2 transition-colors duration-200`;
+                
+                // Styling logic based on status
+                let isAnswered = false;
+                if(i === 1 && state.answers.q1 !== null) isAnswered = true;
+                if(i === 2 && state.answers.q2.length > 0) isAnswered = true;
+                if(i === 3 && (state.answers.q3.p1 || state.answers.q3.p2 || state.answers.q3.p3)) isAnswered = true;
+
+                if (state.currentQ === i) {
+                    // Active (Biru)
+                    btn.classList.add('border-blue-600', 'bg-blue-100', 'text-blue-800');
+                } else if (state.ragu[i]) {
+                    // Ragu-ragu (Kuning)
+                    btn.classList.add('bg-yellow-400', 'border-yellow-500', 'text-yellow-900');
+                } else if (isAnswered) {
+                    // Sudah dikerjakan (Hijau)
+                    btn.classList.add('bg-green-500', 'border-green-600', 'text-white');
+                } else {
+                    // Belum dikerjakan (Abu-abu/Putih)
+                    btn.classList.add('bg-white', 'border-gray-300', 'text-gray-600');
+                }
+
+                container.appendChild(btn);
+            }
+
+            // Update status checkbox ragu-ragu
+            document.getElementById('checkbox-ragu').checked = state.ragu[state.currentQ];
+
+            // Update Bottom Buttons
+            if (state.currentQ === state.totalQ) {
+                document.getElementById('btn-next').classList.add('hidden');
+                document.getElementById('btn-finish').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-next').classList.remove('hidden');
+                document.getElementById('btn-finish').classList.add('hidden');
+            }
+        }
+
+        function goToQuestion(num) {
+            document.querySelectorAll('.question-container').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`q${num}-container`).classList.remove('hidden');
+            state.currentQ = num;
+            renderNav();
+        }
+
+        function nextQuestion() {
+            if (state.currentQ < state.totalQ) {
+                goToQuestion(state.currentQ + 1);
+            }
+        }
+
+        // --- INPUT & ANSWER HANDLING ---
+
+        function saveAnswer(qNum, value) {
+            state.answers[`q${qNum}`] = value;
+            renderNav();
+        }
+
+        function saveAnswerQ2() {
+            const checkboxes = document.querySelectorAll('input[name="q2"]:checked');
+            let values = [];
+            checkboxes.forEach((cb) => {
+                values.push(cb.value);
+            });
+            state.answers.q2 = values;
+            renderNav();
+        }
+
+        function saveAnswerQ3(pernyataan, value) {
+            state.answers.q3[pernyataan] = value;
+            renderNav();
+        }
+
+        function toggleRagu() {
+            const isChecked = document.getElementById('checkbox-ragu').checked;
+            state.ragu[state.currentQ] = isChecked;
+            renderNav();
+        }
+
+        // --- FLOW CONTROLLERS ---
+
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputToken = document.getElementById('input-token').value.trim();
+            const errDiv = document.getElementById('token-error');
+
+            if (inputToken !== state.tokenValid) {
+                errDiv.classList.remove('hidden');
+            } else {
+                errDiv.classList.add('hidden');
+                state.nama = document.getElementById('input-nama').value.trim();
+                state.nisn = document.getElementById('input-nisn').value.trim();
+                
+                // Show Modal
+                document.getElementById('display-nama').innerText = state.nama;
+                document.getElementById('display-nisn').innerText = state.nisn;
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('modal-section').style.display = 'flex';
+            }
+        });
+
+        document.getElementById('btn-start').addEventListener('click', function() {
+            document.getElementById('modal-section').style.display = 'none';
+            document.getElementById('test-section').classList.remove('hidden-section');
+            renderNav();
+        });
+
+        function calculateScore() {
+            let correctPoints = 0;
+
+            // Q1: Kunci A
+            if (state.answers.q1 === 'A') correctPoints += 1;
+
+            // Q2: Kunci A dan B
+            const q2Ans = state.answers.q2;
+            if (q2Ans.includes('A') && q2Ans.includes('B') && !q2Ans.includes('C') && q2Ans.length === 2) {
+                correctPoints += 1;
+            }
+
+            // Q3: Kunci B, S, B
+            const q3Ans = state.answers.q3;
+            if (q3Ans.p1 === 'B' && q3Ans.p2 === 'S' && q3Ans.p3 === 'B') {
+                correctPoints += 1; // Harus benar semua baru dapat poin 1
+            }
+
+            const finalScore = (correctPoints / 3) * 100;
+            return finalScore.toFixed(2);
+        }
+
+        function finishTest() {
+            // Hide test UI
+            document.getElementById('test-section').style.display = 'none';
+            
+            // Calculate and inject score
+            const score = calculateScore();
+            document.getElementById('display-score').innerText = score;
+            document.getElementById('res-nama').innerText = state.nama;
+            document.getElementById('res-nisn').innerText = state.nisn;
+
+            // Show result
+            document.getElementById('result-section').classList.remove('hidden-section');
+        }
+    </script>
+</body>
+</html>
